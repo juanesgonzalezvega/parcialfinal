@@ -10,26 +10,29 @@ def listar_vuelos(origen: Optional[str] = None, destino: Optional[str] = None, f
         with open(VUELOS_CSV, newline='', encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                row['id'] = int(row['id'])
-                row['sillasReservadas'] = int(row['sillasReservadas'])
-                row['sillasVendidas'] = int(row['sillasVendidas'])
-                vuelo = Vuelo(**row)
-                if origen and vuelo.origen != origen:
+                try:
+                    row['id'] = int(row['id'])
+                    row['sillasReservadas'] = int(row['sillasReservadas'])
+                    row['sillasVendidas'] = int(row['sillasVendidas'])
+                    vuelo = Vuelo(**row)
+                    if (origen and vuelo.origen != origen):
+                        continue
+                    if (destino and vuelo.destino != destino):
+                        continue
+                    if (fecha and vuelo.fecha != fecha):
+                        continue
+                    vuelos.append(vuelo)
+                except Exception:
                     continue
-                if destino and vuelo.destino != destino:
-                    continue
-                if fecha and vuelo.fecha != fecha:
-                    continue
-                vuelos.append(vuelo)
     except FileNotFoundError:
         pass
     return vuelos
 
-def obtener_vuelo(vuelo_id: int) -> Vuelo:
+def obtener_vuelo(vuelo_id: int) -> Optional[Vuelo]:
     for vuelo in listar_vuelos():
         if vuelo.id == vuelo_id:
             return vuelo
-    raise Exception("Vuelo no encontrado")
+    return None
 
 def crear_vuelo(vuelo: Vuelo) -> Vuelo:
     vuelos = listar_vuelos()

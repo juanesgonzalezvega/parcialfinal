@@ -8,9 +8,7 @@ from operations import op_vuelos as vuelos_ops
 
 router = APIRouter()
 
-# ----------------------------
-# Endpoints de Usuarios
-# ----------------------------
+# ---- Endpoints de Usuarios ----
 
 @router.get("/usuarios", response_model=List[Usuario])
 def listar_usuarios():
@@ -44,9 +42,7 @@ def eliminar_usuario(user_id: int):
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-# ----------------------------
-# Endpoints de Vuelos
-# ----------------------------
+# ---- Endpoints de Vuelos ----
 
 @router.get("/vuelos", response_model=List[Vuelo])
 def listar_vuelos(origen: Optional[str] = Query(None), destino: Optional[str] = Query(None), fecha: Optional[str] = Query(None)):

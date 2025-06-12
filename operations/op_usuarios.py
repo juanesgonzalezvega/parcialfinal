@@ -1,5 +1,5 @@
 import csv
-from typing import List
+from typing import List, Optional
 from models.usuario import Usuario
 
 USUARIOS_CSV = "usuarios.csv"
@@ -10,20 +10,23 @@ def listar_usuarios() -> List[Usuario]:
         with open(USUARIOS_CSV, newline='', encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                row['id'] = int(row['id'])
-                row['edadUsuario'] = int(row['edadUsuario'])
-                row['edadMascota'] = int(row['edadMascota'])
-                row['idMascota'] = int(row['idMascota'])
-                usuarios.append(Usuario(**row))
+                try:
+                    row['id'] = int(row['id'])
+                    row['edadUsuario'] = int(row['edadUsuario'])
+                    row['edadMascota'] = int(row['edadMascota'])
+                    row['idMascota'] = int(row['idMascota'])
+                    usuarios.append(Usuario(**row))
+                except Exception:
+                    continue  # Salta filas corruptas
     except FileNotFoundError:
         pass
     return usuarios
 
-def obtener_usuario(user_id: int) -> Usuario:
+def obtener_usuario(user_id: int) -> Optional[Usuario]:
     for usuario in listar_usuarios():
         if usuario.id == user_id:
             return usuario
-    raise Exception("Usuario no encontrado")
+    return None
 
 def crear_usuario(usuario: Usuario) -> Usuario:
     usuarios = listar_usuarios()
