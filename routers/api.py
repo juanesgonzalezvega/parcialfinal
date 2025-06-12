@@ -2,10 +2,10 @@ from fastapi import APIRouter, HTTPException, Query, Body
 from typing import List, Optional
 
 from schemas import Usuario, Mascota, Vuelo, Reserva
-import op_usuarios as usuarios_ops
-import op_mascotas as mascotas_ops
-import op_vuelos as vuelos_ops
-import op_reservas as reservas_ops
+from operations import op_usuarios as usuarios_ops
+from operations import op_mascotas as mascotas_ops
+from operations import op_vuelos as vuelos_ops
+from operations import op_reservas as reservas_ops
 
 router = APIRouter()
 
