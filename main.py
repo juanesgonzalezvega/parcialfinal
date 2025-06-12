@@ -80,19 +80,3 @@ def home(request: Request):
 
 # Incluir el router de la API
 app.include_router(api.router)
-
-# ---------- Manejadores de Errores ----------
-
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request: Request, exc: HTTPException):
-    return templates.TemplateResponse("404.html", {"request": request, "detail": exc.detail}, status_code=exc.status_code)
-
-# ---------- Lifespan Event ----------
-
-@app.on_event("lifespan")
-async def lifespan(event):
-    # Cargar datos al inicio
-    yield
-    # Guardar datos al final
-    guardar_usuarios(USUARIOS)
-    guardar_vuelos(VUELOS)
