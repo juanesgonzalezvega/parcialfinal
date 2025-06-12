@@ -1,146 +1,110 @@
 import csv
+import os
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from typing import List, Optional
-from models.usuario import Usuario  # Importar el modelo Usuario
-from models.vuelo import Vuelo  # Importar el modelo Vuelo
+from typing import List
+
+from models.usuario import Usuario
+from models.vuelo import Vuelo
+from models.reserva import Reserva
+from routers import api  # Importa el router que contiene los endpoints
 
 USUARIOS_CSV = "usuarios.csv"
 VUELOS_CSV = "vuelos.csv"
+RESERVAS_CSV = "reservas.csv"
 
 app = FastAPI(title="ParcialFinal - Vuelos para Mascotas")
-
-# Configura carpetas para archivos estáticos y plantillas
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-# Cargar datos desde archivos CSV
-def cargar_usuarios():
+# ---------- CARGA Y GUARDADO CSV ----------
+
+def cargar_usuarios() -> List[Usuario]:
     usuarios = []
+    if not os.path.exists(USUARIOS_CSV):
+        with open(USUARIOS_CSV, "w", newline='', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=Usuario.__annotations__.keys())
+            writer.writeheader()
     with open(USUARIOS_CSV, mode='r', newline='', encoding='utf-8') as file:
         reader = csv.DictReader(file)
         for row in reader:
-            usuarios.append(Usuario(**row))  # Asegúrate de que los campos coincidan con el modelo Usuario
+            row['id'] = int(row['id'])
+            row['edadUsuario'] = int(row['edadUsuario'])
+            row['edadMascota'] = int(row['edadMascota'])
+            row['idMascota'] = int(row['idMascota'])
+            usuarios.append(Usuario(**row))
     return usuarios
 
-def cargar_vuelos():
-    vuelos = []
-    with open(VUELOS_CSV, mode='r', newline='', encoding='utf-8') as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            vuelos.append(Vuelo(**row))  # Asegúrate de que los campos coincidan con el modelo Vuelo
-    return vuelos
-
-# Guardar datos en archivos CSV
-def guardar_usuarios():
+def guardar_usuarios(usuarios: List[Usuario]):
     with open(USUARIOS_CSV, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.DictWriter(file, fieldnames=Usuario.__annotations__.keys())
         writer.writeheader()
-        for usuario in USUARIOS:
-            writer.writerow(usuario.dict())
+        for usuario in usuarios:
+            writer.writerow({k: str(v) for k, v in usuario.dict().items()})
 
-def guardar_vuelos():
-    with open(VUELOS_CSV, mode='w', newline='', encoding='utf-8') as file:
+def cargar_vuelos() -> List[Vuelo]:
+    vuelos = []
+    if not os.path.exists(VUELOS_CSV):
+        with open(VUELOS_CSV, "w", newline='', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=Vuelo.__annotations__.keys())
+            writer.writeheader()
+    with open(VUELOS_CSV, mode='r', newline='', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            row['id'] = int(row['id'])
+            row['sillasReservadas'] = int(row['sillasReservadas'])
+            row['sillasVendidas'] = int(row['sillasVendidas'])
+            vuelos.append(Vuelo(**row))
+    return vuelos
+
+def guardar_vuelos(vuelos: List[Vuelo]):
+    with open(VUELOS_CSV, "w", newline='', encoding='utf-8') as file:
         writer = csv.DictWriter(file, fieldnames=Vuelo.__annotations__.keys())
         writer.writeheader()
-        for vuelo in VUELOS:
-            writer.writerow(vuelo.dict())
+        for vuelo in vuelos:
+            writer.writerow({k: str(v) for k, v in vuelo.dict().items()})
 
-# Cargar datos al iniciar la aplicación
+def cargar_reservas() -> List[Reserva]:
+    reservas = []
+    if not os.path.exists(RESERVAS_CSV):
+        with open(RESERVAS_CSV, "w", newline='', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=Reserva.__annotations__.keys())
+            writer.writeheader()
+    with open(RESERVAS_CSV, mode='r', newline='', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            row['id'] = int(row['id'])
+            row['vuelo_id'] = int(row['vuelo_id'])
+            row['usuario_id'] = int(row['usuario_id'])
+            reservas.append(Reserva(**row))
+    return reservas
+
+def guardar_reservas(reservas: List[Reserva]):
+    with open(RESERVAS_CSV, "w", newline='', encoding='utf-8') as file:
+        writer = csv.DictWriter(file, fieldnames=Reserva.__annotations__.keys())
+        writer.writeheader()
+        for reserva in reservas:
+            writer.writerow({k: str(v) for k, v in reserva.dict().items()})
+
+# ---------- CARGA INICIAL ----------
+
 USUARIOS = cargar_usuarios()
 VUELOS = cargar_vuelos()
+RESERVAS = cargar_reservas()
 
-# Portada opcional (index.html)
+# ---------- RUTAS ----------
+
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse("home.html", {"request": request})
 
-# ------------------- USUARIOS -------------------
+# Incluir el router de la API
+app.include_router(api.router)
 
-@app.get("/usuarios", response_model=List[Usuario])
-def listar_usuarios():
-    return USUARIOS
+# ---------- Manejadores de Errores ----------
 
-@app.get("/usuarios/{user_id}", response_model=Usuario)
-def obtener_usuario(user_id: int):
-    for user in USUARIOS:
-        if user.id == user_id:
-            return user
-    raise HTTPException(status_code=404, detail="Usuario no encontrado")
-
-@app.post("/usuarios", response_model=Usuario)
-def crear_usuario(usuario: Usuario):
-    USUARIOS.append(usuario)
-    guardar_usuarios()  # Guardar cambios en el archivo CSV
-    return usuario
-
-@app.put("/usuarios/{user_id}", response_model=Usuario)
-def actualizar_usuario(user_id: int, usuario: Usuario):
-    for i, user in enumerate(USUARIOS):
-        if user.id == user_id:
-            USUARIOS[i] = usuario
-            guardar_usuarios()  # Guardar cambios en el archivo CSV
-            return usuario
-    raise HTTPException(status_code=404, detail="Usuario no encontrado")
-
-@app.delete("/usuarios/{user_id}")
-def eliminar_usuario(user_id: int):
-    for i, user in enumerate(USUARIOS):
-        if user.id == user_id:
-            del USUARIOS[i]
-            guardar_usuarios()  # Guardar cambios en el archivo CSV
-            return {"ok": True}
-    raise HTTPException(status_code=404, detail="Usuario no encontrado")
-
-# ------------------- MASCOTAS -------------------
-
-# Aquí puedes agregar la lógica para manejar las mascotas si es necesario.
-# Asegúrate de que el modelo de Mascota esté definido y que se maneje correctamente.
-
-# ------------------- VUELOS -------------------
-
-@app.get("/vuelos", response_model=List[Vuelo])
-def listar_vuelos(origen: Optional[str] = None, destino: Optional[str] = None, fecha: Optional[str] = None):
-    vuelos_filtrados = VUELOS
-    if origen:
-        vuelos_filtrados = [v for v in vuelos_filtrados if v.origen == origen]
-    if destino:
-        vuelos_filtrados = [v for v in vuelos_filtrados if v.destino == destino]
-    if fecha:
-        vuelos_filtrados = [v for v in vuelos_filtrados if str(v.fecha) == fecha]
-    return vuelos_filtrados
-
-@app.get("/vuelos/{localizador}", response_model=Vuelo)
-def obtener_vuelo(localizador: str):
-    for vuelo in VUELOS:
-        if vuelo.id == localizador:  # Cambié localizador a id para que coincida con el modelo
-            return vuelo
-    raise HTTPException(status_code=404, detail="Vuelo no encontrado")
-
-@app.post("/vuelos", response_model=Vuelo)
-def crear_vuelo(vuelo: Vuelo):
-    VUELOS.append(vuelo)
-    guardar_vuelos()  # Guardar cambios en el archivo CSV
-    return vuelo
-
-@app.put("/vuelos/{localizador}", response_model=Vuelo)
-def actualizar_vuelo(localizador: str, vuelo: Vuelo):
-    for i, v in enumerate(VUELOS):
-        if v.id == localizador:  # Cambié localizador a id para que coincida con el modelo
-            VUELOS[i] = vuelo
-            guardar_vuelos()  # Guardar cambios en el archivo CSV
-            return vuelo
-    raise HTTPException(status_code=404, detail="Vuelo no encontrado")
-
-@app.delete("/vuelos/{localizador}")
-def eliminar_vuelo(localizador: str):
-    for i, vuelo in enumerate(VUELOS):
-        if vuelo.id == localizador:  # Cambié localizador a id para que coincida con el modelo
-            del VUELOS[i]
-            guardar_vuelos()  # Guardar cambios en el archivo CSV
-            return {"ok": True}
-    raise HTTPException(status_code=404, detail="Vuelo no encontrado")
-
-# Aquí puedes agregar la lógica para manejar reservas si es necesario.
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return templates.TemplateResponse("404.html", {"request": request, "detail": exc.detail}, status_code=exc.status_code)

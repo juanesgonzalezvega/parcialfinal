@@ -4,7 +4,6 @@ class Usuario(BaseModel):
     id: int
     nombre: str
     edadUsuario: int
-    CC: str
+    idMascota: int
     nombreMascota: str
     edadMascota: int
-    idMascota: int

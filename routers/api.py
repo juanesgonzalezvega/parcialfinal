@@ -1,9 +1,12 @@
-from fastapi import APIRouter, HTTPException, Query, Body
+from fastapi import APIRouter, HTTPException, Query
 from typing import List, Optional
 
-from schemas import Usuario, Mascota, Vuelo, Reserva
+from models.usuario import Usuario
+from models.vuelo import Vuelo
+from models.reserva import Reserva
 from operations import op_usuarios as usuarios_ops
 from operations import op_vuelos as vuelos_ops
+from operations import op_reservas as reservas_ops
 
 router = APIRouter()
 
@@ -32,34 +35,6 @@ def eliminar_usuario(user_id: int):
     return usuarios_ops.eliminar_usuario(user_id)
 
 # ----------------------------
-# Endpoints de Mascotas
-# ----------------------------
-
-@router.get("/mascotas", response_model=List[Mascota])
-def listar_mascotas():
-    return usuarios_ops.listar_mascotas()
-
-@router.get("/mascotas/{mascota_id}", response_model=Mascota)
-def obtener_mascota(mascota_id: int):
-    return usuarios_ops.obtener_mascota(mascota_id)
-
-@router.get("/usuarios/{user_id}/mascotas", response_model=List[Mascota])
-def mascotas_por_usuario(user_id: int):
-    return usuarios_ops.mascotas_por_usuario(user_id)
-
-@router.post("/mascotas", response_model=Mascota)
-def crear_mascota(mascota: Mascota):
-    return usuarios_ops.crear_mascota(mascota)
-
-@router.put("/mascotas/{mascota_id}", response_model=Mascota)
-def actualizar_mascota(mascota_id: int, mascota: Mascota):
-    return usuarios_ops.actualizar_mascota(mascota_id, mascota)
-
-@router.delete("/mascotas/{mascota_id}")
-def eliminar_mascota(mascota_id: int):
-    return usuarios_ops.eliminar_mascota(mascota_id)
-
-# ----------------------------
 # Endpoints de Vuelos
 # ----------------------------
 
@@ -67,50 +42,42 @@ def eliminar_mascota(mascota_id: int):
 def listar_vuelos(origen: Optional[str] = Query(None), destino: Optional[str] = Query(None), fecha: Optional[str] = Query(None)):
     return vuelos_ops.listar_vuelos(origen, destino, fecha)
 
-@router.get("/vuelos/{localizador}", response_model=Vuelo)
-def obtener_vuelo(localizador: str):
-    return vuelos_ops.obtener_vuelo(localizador)
+@router.get("/vuelos/{vuelo_id}", response_model=Vuelo)
+def obtener_vuelo(vuelo_id: int):
+    return vuelos_ops.obtener_vuelo(vuelo_id)
 
 @router.post("/vuelos", response_model=Vuelo)
 def crear_vuelo(vuelo: Vuelo):
     return vuelos_ops.crear_vuelo(vuelo)
 
-@router.put("/vuelos/{localizador}", response_model=Vuelo)
-def actualizar_vuelo(localizador: str, vuelo: Vuelo):
-    return vuelos_ops.actualizar_vuelo(localizador, vuelo)
+@router.put("/vuelos/{vuelo_id}", response_model=Vuelo)
+def actualizar_vuelo(vuelo_id: int, vuelo: Vuelo):
+    return vuelos_ops.actualizar_vuelo(vuelo_id, vuelo)
 
-@router.delete("/vuelos/{localizador}")
-def eliminar_vuelo(localizador: str):
-    return vuelos_ops.eliminar_vuelo(localizador)
-
-@router.get("/vuelos/{localizador}/mascotas/count")
-def contar_mascotas_en_vuelo(localizador: str):
-    return vuelos_ops.contar_mascotas_en_vuelo(localizador)
+@router.delete("/vuelos/{vuelo_id}")
+def eliminar_vuelo(vuelo_id: int):
+    return vuelos_ops.eliminar_vuelo(vuelo_id)
 
 # ----------------------------
 # Endpoints de Reservas
 # ----------------------------
 
-@router.get("/reservas", response_model=List[Reserva])
-def listar_reservas():
-    return vuelos_ops.listar_reservas()
+@router.get("/vuelos/{vuelo_id}/reservas", response_model=List[Reserva])
+def listar_reservas_por_vuelo(vuelo_id: int):
+    return reservas_ops.listar_reservas_por_vuelo(vuelo_id)
 
 @router.get("/reservas/{reserva_id}", response_model=Reserva)
 def obtener_reserva(reserva_id: int):
-    return vuelos_ops.obtener_reserva(reserva_id)
+    return reservas_ops.obtener_reserva(reserva_id)
 
-@router.post("/reservas", response_model=Reserva)
-def crear_reserva(reserva: Reserva):
-    return vuelos_ops.crear_reserva(reserva)
+@router.post("/vuelos/{vuelo_id}/reservas", response_model=Reserva)
+def crear_reserva(vuelo_id: int, reserva: Reserva):
+    return reservas_ops.crear_reserva(vuelo_id, reserva)
 
 @router.put("/reservas/{reserva_id}", response_model=Reserva)
 def actualizar_reserva(reserva_id: int, reserva: Reserva):
-    return vuelos_ops.actualizar_reserva(reserva_id, reserva)
-
-@router.post("/reservas/{reserva_id}/comprar")
-def comprar_reserva(reserva_id: int):
-    return vuelos_ops.comprar_reserva(reserva_id)
+    return reservas_ops.actualizar_reserva(reserva_id, reserva)
 
 @router.delete("/reservas/{reserva_id}")
 def eliminar_reserva(reserva_id: int):
-    return vuelos_ops.eliminar_reserva(reserva_id)
+    return reservas_ops.eliminar_reserva(reserva_id)
