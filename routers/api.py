@@ -18,19 +18,31 @@ def listar_usuarios():
 
 @router.get("/usuarios/{user_id}", response_model=Usuario)
 def obtener_usuario(user_id: int):
-    return usuarios_ops.obtener_usuario(user_id)
+    usuario = usuarios_ops.obtener_usuario(user_id)
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    return usuario
 
 @router.post("/usuarios", response_model=Usuario)
 def crear_usuario(usuario: Usuario):
-    return usuarios_ops.crear_usuario(usuario)
+    try:
+        return usuarios_ops.crear_usuario(usuario)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.put("/usuarios/{user_id}", response_model=Usuario)
 def actualizar_usuario(user_id: int, usuario: Usuario):
-    return usuarios_ops.actualizar_usuario(user_id, usuario)
+    try:
+        return usuarios_ops.actualizar_usuario(user_id, usuario)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.delete("/usuarios/{user_id}")
 def eliminar_usuario(user_id: int):
-    return usuarios_ops.eliminar_usuario(user_id)
+    try:
+        return usuarios_ops.eliminar_usuario(user_id)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 # ----------------------------
 # Endpoints de Vuelos
@@ -42,16 +54,28 @@ def listar_vuelos(origen: Optional[str] = Query(None), destino: Optional[str] = 
 
 @router.get("/vuelos/{vuelo_id}", response_model=Vuelo)
 def obtener_vuelo(vuelo_id: int):
-    return vuelos_ops.obtener_vuelo(vuelo_id)
+    vuelo = vuelos_ops.obtener_vuelo(vuelo_id)
+    if not vuelo:
+        raise HTTPException(status_code=404, detail="Vuelo no encontrado")
+    return vuelo
 
 @router.post("/vuelos", response_model=Vuelo)
 def crear_vuelo(vuelo: Vuelo):
-    return vuelos_ops.crear_vuelo(vuelo)
+    try:
+        return vuelos_ops.crear_vuelo(vuelo)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.put("/vuelos/{vuelo_id}", response_model=Vuelo)
 def actualizar_vuelo(vuelo_id: int, vuelo: Vuelo):
-    return vuelos_ops.actualizar_vuelo(vuelo_id, vuelo)
+    try:
+        return vuelos_ops.actualizar_vuelo(vuelo_id, vuelo)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.delete("/vuelos/{vuelo_id}")
 def eliminar_vuelo(vuelo_id: int):
-    return vuelos_ops.eliminar_vuelo(vuelo_id)
+    try:
+        return vuelos_ops.eliminar_vuelo(vuelo_id)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))

@@ -1,9 +1,6 @@
 import csv
 import os
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from fastapi import FastAPI
 from typing import List
 
 from models.usuario import Usuario
@@ -14,8 +11,6 @@ USUARIOS_CSV = "usuarios.csv"
 VUELOS_CSV = "vuelos.csv"
 
 app = FastAPI(title="ParcialFinal - Vuelos para Mascotas")
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
 
 # ---------- CARGA Y GUARDADO CSV ----------
 
@@ -71,12 +66,6 @@ def guardar_vuelos(vuelos: List[Vuelo]):
 
 USUARIOS = cargar_usuarios()
 VUELOS = cargar_vuelos()
-
-# ---------- RUTAS ----------
-
-@app.get("/", response_class=HTMLResponse)
-def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
 
 # Incluir el router de la API
 app.include_router(api.router)
