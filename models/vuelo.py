@@ -1,12 +1,9 @@
 from pydantic import BaseModel
-from datetime import date
-
 
 class Vuelo(BaseModel):
-
-localizador: str
-origen: str
-destino: str
-fecha: date
-sillas_res: int
-sillas_ven: int
+    id: int
+    origen: str
+    destino: str
+    fecha: str   # puedes cambiar a datetime.date si lo deseas, pero para CSV es más sencillo string
+    sillasReservadas: int
+    sillasVendidas: int

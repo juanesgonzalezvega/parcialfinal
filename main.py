@@ -1,7 +1,10 @@
 from fastapi import FastAPI, HTTPException
 from typing import List
 from schemas import Usuario, Mascota, Vuelo, Reserva
-from database import USUARIOS, MASCOTAS, VUELOS, RESERVAS
+from routers import api
+
+app = FastAPI()
+app.include_router(api.router)
 
 app = FastAPI(title="ParcialFinal - Vuelos para Mascotas")
 
