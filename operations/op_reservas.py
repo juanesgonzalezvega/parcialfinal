@@ -4,40 +4,24 @@ from models.reserva import Reserva
 
 RESERVAS_CSV = "reservas.csv"
 
-
-def listar_reservas_por_vuelo(vuelo_id: int) -> List[Reserva]:
+def listar_reservas() -> List[Reserva]:
     reservas = []
     try:
         with open(RESERVAS_CSV, newline='', encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                if int(row['vuelo_id']) == vuelo_id:
-                    row['id'] = int(row['id'])
-                    reservas.append(Reserva(**row))
+                row['id'] = int(row['id'])
+                row['vuelo_id'] = int(row['vuelo_id'])
+                row['usuario_id'] = int(row['usuario_id'])
+                reservas.append(Reserva(**row))
     except FileNotFoundError:
         pass
     return reservas
 
-
-def obtener_reserva(reserva_id: int) -> Reserva:
-    try:
-        with open(RESERVAS_CSV, newline='', encoding="utf-8") as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                if int(row['id']) == reserva_id:
-                    row['vuelo_id'] = int(row['vuelo_id'])
-                    row['usuario_id'] = int(row['usuario_id'])
-                    return Reserva(**row)
-    except FileNotFoundError:
-        raise Exception("Archivo de reservas no encontrado")
-    raise Exception("Reserva no encontrada")
-
-
-def crear_reserva(vuelo_id: int, reserva: Reserva) -> Reserva:
-    reservas = listar_reservas_por_vuelo(vuelo_id)
+def crear_reserva(reserva: Reserva) -> Reserva:
+    reservas = listar_reservas()
     if any(r.id == reserva.id for r in reservas):
         raise Exception("La reserva ya existe")
-
     with open(RESERVAS_CSV, "a", newline='', encoding="utf-8") as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=reserva.dict().keys())
         if csvfile.tell() == 0:
@@ -45,24 +29,22 @@ def crear_reserva(vuelo_id: int, reserva: Reserva) -> Reserva:
         writer.writerow(reserva.dict())
     return reserva
 
+def obtener_reserva(reserva_id: int) -> Reserva:
+    for reserva in listar_reservas():
+        if reserva.id == reserva_id:
+            return reserva
+    raise Exception("Reserva no encontrada")
 
 def actualizar_reserva(reserva_id: int, reserva: Reserva) -> Reserva:
-    reservas = []
+    reservas = listar_reservas()
     actualizado = False
-    try:
-        with open(RESERVAS_CSV, newline='', encoding="utf-8") as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                if int(row['id']) == reserva_id:
-                    row.update(reserva.dict())
-                    actualizado = True
-                reservas.append(Reserva(**row))
-    except FileNotFoundError:
-        raise Exception("Archivo de reservas no encontrado")
-
+    for i, r in enumerate(reservas):
+        if r.id == reserva_id:
+            reservas[i] = reserva
+            actualizado = True
+            break
     if not actualizado:
         raise Exception("Reserva no encontrada")
-
     with open(RESERVAS_CSV, "w", newline='', encoding="utf-8") as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=reserva.dict().keys())
         writer.writeheader()
@@ -70,28 +52,15 @@ def actualizar_reserva(reserva_id: int, reserva: Reserva) -> Reserva:
             writer.writerow(r.dict())
     return reserva
 
-
 def eliminar_reserva(reserva_id: int):
-    reservas = []
-    eliminado = False
-    try:
-        with open(RESERVAS_CSV, newline='', encoding="utf-8") as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                if int(row['id']) != reserva_id:
-                    reservas.append(Reserva(**row))
-                else:
-                    eliminado = True
-    except FileNotFoundError:
-        raise Exception("Archivo de reservas no encontrado")
-
-    if not eliminado:
+    reservas = listar_reservas()
+    nuevos = [r for r in reservas if r.id != reserva_id]
+    if len(nuevos) == len(reservas):
         raise Exception("Reserva no encontrada")
-
     with open(RESERVAS_CSV, "w", newline='', encoding="utf-8") as csvfile:
-        if reservas:
-            writer = csv.DictWriter(csvfile, fieldnames=reservas[0].dict().keys())
+        if nuevos:
+            writer = csv.DictWriter(csvfile, fieldnames=nuevos[0].dict().keys())
             writer.writeheader()
-            for r in reservas:
+            for r in nuevos:
                 writer.writerow(r.dict())
     return {"ok": True}

@@ -3,10 +3,8 @@ from typing import List, Optional
 
 from models.usuario import Usuario
 from models.vuelo import Vuelo
-from models.reserva import Reserva
 from operations import op_usuarios as usuarios_ops
 from operations import op_vuelos as vuelos_ops
-from operations import op_reservas as reservas_ops
 
 router = APIRouter()
 
@@ -57,27 +55,3 @@ def actualizar_vuelo(vuelo_id: int, vuelo: Vuelo):
 @router.delete("/vuelos/{vuelo_id}")
 def eliminar_vuelo(vuelo_id: int):
     return vuelos_ops.eliminar_vuelo(vuelo_id)
-
-# ----------------------------
-# Endpoints de Reservas
-# ----------------------------
-
-@router.get("/vuelos/{vuelo_id}/reservas", response_model=List[Reserva])
-def listar_reservas_por_vuelo(vuelo_id: int):
-    return reservas_ops.listar_reservas_por_vuelo(vuelo_id)
-
-@router.get("/reservas/{reserva_id}", response_model=Reserva)
-def obtener_reserva(reserva_id: int):
-    return reservas_ops.obtener_reserva(reserva_id)
-
-@router.post("/vuelos/{vuelo_id}/reservas", response_model=Reserva)
-def crear_reserva(vuelo_id: int, reserva: Reserva):
-    return reservas_ops.crear_reserva(vuelo_id, reserva)
-
-@router.put("/reservas/{reserva_id}", response_model=Reserva)
-def actualizar_reserva(reserva_id: int, reserva: Reserva):
-    return reservas_ops.actualizar_reserva(reserva_id, reserva)
-
-@router.delete("/reservas/{reserva_id}")
-def eliminar_reserva(reserva_id: int):
-    return reservas_ops.eliminar_reserva(reserva_id)

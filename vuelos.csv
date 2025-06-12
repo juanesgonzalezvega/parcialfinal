@@ -1,2 +1,4 @@
 id,origen,destino,fecha,sillasReservadas,sillasVendidas
-1,Bogotá-Colombia,13-07-2025,5,no
+1,Nueva York,Los Ángeles,2023-10-01,10,5
+2,Miami,Chicago,2023-10-02,20,15
+3,San Francisco,Las Vegas,2023-10-03,15,10

@@ -1,6 +1,4 @@
 id,vuelo_id,usuario_id,nombre_mascota,fecha_reserva,estado
-1,101,1,Fido,2023-10-01,confirmada
-2,102,2,Whiskers,2023-10-02,confirmada
-3,101,1,Max,2023-10-03,cancelada
-4,103,3,Bella,2023-10-04,confirmada
-5,102,2,Luna,2023-10-05,confirmada
+1,1,1,Fido,2025-07-01,confirmada
+2,1,1,Max,2025-07-02,cancelada
+3,1,2,Luna,2025-07-03,confirmada
