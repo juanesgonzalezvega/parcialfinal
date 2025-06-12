@@ -1,10 +1,11 @@
 from fastapi import APIRouter, HTTPException, Query, Body
 from typing import List, Optional
 
-from models.usuario import Usuario
-from models.vuelo import Vuelo
-import operations.op_usuarios as jugador_ops
-import operations.op_vuelos as partido_ops
+from schemas import Usuario, Mascota, Vuelo, Reserva
+import op_usuarios as usuarios_ops
+import op_mascotas as mascotas_ops
+import op_vuelos as vuelos_ops
+import op_reservas as reservas_ops
 
 router = APIRouter()
 
@@ -12,124 +13,106 @@ router = APIRouter()
 # Endpoints de Usuarios
 # ----------------------------
 
-@router.get("/players", response_model=List[Usuario])
-async def obtener_todos_los_jugadores():
-    jugadores = jugador_ops.leer_todos_los_jugadores()
-    jugadores_activos = [j for j in jugadores if j.estado == "activo"]
-    if not jugadores_activos:
-        raise HTTPException(status_code=404, detail="No se encontraron jugadores activos")
-    return jugadores_activos
+@router.get("/usuarios", response_model=List[Usuario])
+def listar_usuarios():
+    return usuarios_ops.listar_usuarios()
 
-@router.get("/players/{id_jugador}", response_model=Usuario)
-async def obtener_jugador(id_jugador: int):
-    jugador = jugador_ops.leer_un_jugador(id_jugador)
-    if not jugador:
-        raise HTTPException(status_code=404, detail="Jugador no encontrado")
-    return jugador
+@router.get("/usuarios/{user_id}", response_model=Usuario)
+def obtener_usuario(user_id: int):
+    return usuarios_ops.obtener_usuario(user_id)
 
-@router.get("/players/search", response_model=List[Usuario])
-async def buscar_jugador(
-    numero_camiseta: Optional[int] = Query(None),
-    apellido: Optional[str] = Query(None)
-):
-    jugadores = jugador_ops.buscar_jugadores(numero_camiseta, apellido)
-    if not jugadores:
-        raise HTTPException(status_code=404, detail="No se encontraron jugadores")
-    return jugadores
+@router.post("/usuarios", response_model=Usuario)
+def crear_usuario(usuario: Usuario):
+    return usuarios_ops.crear_usuario(usuario)
 
-@router.post("/players", response_model=Usuario)
-async def agregar_jugador(jugador: Usuario):
-    nuevo_jugador = jugador_ops.agregar_jugador(jugador)
-    return nuevo_jugador
+@router.put("/usuarios/{user_id}", response_model=Usuario)
+def actualizar_usuario(user_id: int, usuario: Usuario):
+    return usuarios_ops.actualizar_usuario(user_id, usuario)
 
-@router.put("/players/{id_jugador}/status", response_model=Usuario)
-async def modificar_estado_jugador_endpoint(
-    id_jugador: int,
-    estado: str = Body(..., embed=True)
-):
-    jugador_modificado = jugador_ops.modificar_estado_jugador(id_jugador, estado)
-    if jugador_modificado is None:
-        raise HTTPException(status_code=404, detail="Jugador no encontrado")
-    return jugador_modificado
-
-@router.put("/players/{id_jugador}", response_model=Usuario)
-async def modificar_jugador_endpoint(id_jugador: int, jugador: Usuario):
-    jugador_modificado = jugador_ops.modificar_jugador(id_jugador, jugador)
-    if jugador_modificado is None:
-        raise HTTPException(status_code=404, detail="Jugador no encontrado")
-    return jugador_modificado
-
-@router.delete("/players/{id_jugador}", response_model=Usuario)
-async def eliminar_jugador_endpoint(id_jugador: int):
-    jugador_eliminado = jugador_ops.eliminar_jugador(id_jugador)
-    if jugador_eliminado is None:
-        raise HTTPException(status_code=404, detail="Jugador no encontrado")
-    return jugador_eliminado
-
-@router.get("/players/deleted", response_model=List[Usuario])
-async def obtener_jugadores_eliminados():
-    jugadores_eliminados = jugador_ops.obtener_jugadores_eliminados()
-    if not jugadores_eliminados:
-        raise HTTPException(status_code=404, detail="No se encontraron jugadores eliminados")
-    return jugadores_eliminados
+@router.delete("/usuarios/{user_id}")
+def eliminar_usuario(user_id: int):
+    return usuarios_ops.eliminar_usuario(user_id)
 
 # ----------------------------
-# Endpoints de Partidos
+# Endpoints de Mascotas
 # ----------------------------
 
-@router.get("/games", response_model=List[Vuelo])
-async def obtener_todos_los_partidos():
-    partidos = partido_ops.leer_todos_los_partidos()
-    if not partidos:
-        raise HTTPException(status_code=404, detail="No se encontraron partidos")
-    return partidos
+@router.get("/mascotas", response_model=List[Mascota])
+def listar_mascotas():
+    return mascotas_ops.listar_mascotas()
 
-@router.get("/games/{id_partido}", response_model=Vuelo)
-async def obtener_partido(id_partido: int):
-    partido = partido_ops.leer_un_partido(id_partido)
-    if not partido:
-        raise HTTPException(status_code=404, detail="Partido no encontrado")
-    return partido
+@router.get("/mascotas/{mascota_id}", response_model=Mascota)
+def obtener_mascota(mascota_id: int):
+    return mascotas_ops.obtener_mascota(mascota_id)
 
-@router.get("/games/search", response_model=List[Vuelo])
-async def buscar_partido(oponente: Optional[str] = Query(None)):
-    partidos = partido_ops.buscar_partidos_por_oponente(oponente)
-    if not partidos:
-        raise HTTPException(status_code=404, detail="No se encontraron partidos")
-    return partidos
+@router.get("/usuarios/{user_id}/mascotas", response_model=List[Mascota])
+def mascotas_por_usuario(user_id: int):
+    return mascotas_ops.mascotas_por_usuario(user_id)
 
-@router.post("/games", response_model=Vuelo)
-async def agregar_partido(partido: Vuelo):
-    nuevo_partido = partido_ops.agregar_partido(partido)
-    return nuevo_partido
+@router.post("/mascotas", response_model=Mascota)
+def crear_mascota(mascota: Mascota):
+    return mascotas_ops.crear_mascota(mascota)
 
-@router.put("/games/{id_partido}/status", response_model=Vuelo)
-async def modificar_estado_partido_endpoint(
-    id_partido: int,
-    estado: str = Body(..., embed=True)
-):
-    partido_modificado = partido_ops.modificar_estado_partido(id_partido, estado)
-    if partido_modificado is None:
-        raise HTTPException(status_code=404, detail="Partido no encontrado")
-    return partido_modificado
+@router.put("/mascotas/{mascota_id}", response_model=Mascota)
+def actualizar_mascota(mascota_id: int, mascota: Mascota):
+    return mascotas_ops.actualizar_mascota(mascota_id, mascota)
 
-@router.put("/games/{id_partido}", response_model=Vuelo)
-async def modificar_partido_endpoint(id_partido: int, partido: Vuelo):
-    partido_modificado = partido_ops.modificar_partido(id_partido, partido)
-    if partido_modificado is None:
-        raise HTTPException(status_code=404, detail="Partido no encontrado")
-    return partido_modificado
+@router.delete("/mascotas/{mascota_id}")
+def eliminar_mascota(mascota_id: int):
+    return mascotas_ops.eliminar_mascota(mascota_id)
 
-@router.delete("/games/{id_partido}", response_model=Vuelo)
-async def eliminar_partido_endpoint(id_partido: int):
-    partido_eliminado = partido_ops.eliminar_partido(id_partido)
-    if partido_eliminado is None:
-        raise HTTPException(status_code=404, detail="Partido no encontrado")
-    return partido_eliminado
+# ----------------------------
+# Endpoints de Vuelos
+# ----------------------------
 
-@router.get("/games/deleted", response_model=List[Vuelo])
-async def obtener_partidos_eliminados():
-    partidos_eliminados = partido_ops.obtener_partidos_eliminados()
-    if not partidos_eliminados:
-        raise HTTPException(status_code=404, detail="No se encontraron partidos eliminados")
-    return partidos_eliminados
+@router.get("/vuelos", response_model=List[Vuelo])
+def listar_vuelos(origen: Optional[str] = Query(None), destino: Optional[str] = Query(None), fecha: Optional[str] = Query(None)):
+    return vuelos_ops.listar_vuelos(origen, destino, fecha)
+
+@router.get("/vuelos/{localizador}", response_model=Vuelo)
+def obtener_vuelo(localizador: str):
+    return vuelos_ops.obtener_vuelo(localizador)
+
+@router.post("/vuelos", response_model=Vuelo)
+def crear_vuelo(vuelo: Vuelo):
+    return vuelos_ops.crear_vuelo(vuelo)
+
+@router.put("/vuelos/{localizador}", response_model=Vuelo)
+def actualizar_vuelo(localizador: str, vuelo: Vuelo):
+    return vuelos_ops.actualizar_vuelo(localizador, vuelo)
+
+@router.delete("/vuelos/{localizador}")
+def eliminar_vuelo(localizador: str):
+    return vuelos_ops.eliminar_vuelo(localizador)
+
+@router.get("/vuelos/{localizador}/mascotas/count")
+def contar_mascotas_en_vuelo(localizador: str):
+    return vuelos_ops.contar_mascotas_en_vuelo(localizador)
+
+# ----------------------------
+# Endpoints de Reservas
+# ----------------------------
+
+@router.get("/reservas", response_model=List[Reserva])
+def listar_reservas():
+    return reservas_ops.listar_reservas()
+
+@router.get("/reservas/{reserva_id}", response_model=Reserva)
+def obtener_reserva(reserva_id: int):
+    return reservas_ops.obtener_reserva(reserva_id)
+
+@router.post("/reservas", response_model=Reserva)
+def crear_reserva(reserva: Reserva):
+    return reservas_ops.crear_reserva(reserva)
+
+@router.put("/reservas/{reserva_id}", response_model=Reserva)
+def actualizar_reserva(reserva_id: int, reserva: Reserva):
+    return reservas_ops.actualizar_reserva(reserva_id, reserva)
+
+@router.post("/reservas/{reserva_id}/comprar")
+def comprar_reserva(reserva_id: int):
+    return reservas_ops.comprar_reserva(reserva_id)
+
+@router.delete("/reservas/{reserva_id}")
+def eliminar_reserva(reserva_id: int):
+    return reservas_ops.eliminar_reserva(reserva_id)

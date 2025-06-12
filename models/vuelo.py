@@ -3,6 +3,7 @@ from datetime import date
 
 
 class Vuelo(BaseModel):
+
 localizador: str
 origen: str
 destino: str

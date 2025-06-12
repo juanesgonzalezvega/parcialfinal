@@ -4,6 +4,7 @@ from datetime import date
 
 
 class Usuario(BaseModel):
+
 id: int
 nombre: str
 cc: int
